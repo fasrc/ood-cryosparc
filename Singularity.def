@@ -2,7 +2,7 @@
 #### remote image/package install
 #### See https://guide.cryosparc.com/setup-configuration-and-management/how-to-download-install-and-configure/downloading-and-installing-cryosparc
 Bootstrap: docker
-From: docker.io/rockylinux/rockylinux:8-ubi
+From: docker.io/rockylinux/rockylinux:8.10-ubi
 
 %arguments
     cryosparc_version=4.7.1
@@ -14,9 +14,8 @@ From: docker.io/rockylinux/rockylinux:8-ubi
 %environment
     export PATH=/opt/cryosparc_master/bin:/opt/cryosparc_worker/bin:${PATH}
 
-# curl needed for `cryosparcm downloadtest`
 %post
-    dnf install -y curl zip
+    dnf install -y zip
     dnf clean all
 
 ########################################

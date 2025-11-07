@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-set -o errexit -o nounset -o pipefail # -o xtrace
+set -o errexit -o nounset -o pipefail -o xtrace
 
-readonly singularity_image=${HOME}/cryosparc.sif # CUSTOMIZE
+readonly singularity_image=/n/sw/singularity_images/OOD/cryosparc/cryosparc_v4.7.1.sif # CUSTOMIZE
 # CryoSPARC license
 #
 export SINGULARITYENV_CRYOSPARC_LICENSE_ID="<%= context.cryosparc_license %>"
@@ -22,6 +22,7 @@ else
 fi
 export SINGULARITYENV_PYTHONNOUSERSITE=1
 export SINGULARITYENV_USER=$(id -un)
+readonly email="${SINGULARITYENV_USER}@fas.rc"
 export SINGULARITY_CLEANENV=true
 
 cryosparc_user_path="<%= context.database_folder %>"
@@ -64,9 +65,9 @@ if ${new_db}
 then
   cryosparcm start
   # initial setup for new database
-  # Add a user account for the webapp
+  # Add a user account for the webapp (admin user by default)
   cryosparcm createuser \
-    --email "${SINGULARITYENV_USER}@fas.rc" \
+    --email "${email}" \
     --password "${cryosparc_user_password}" \
     --username "${SINGULARITYENV_USER}" \
     --firstname "${SINGULARITYENV_USER}" \
@@ -77,8 +78,27 @@ else
   cryosparcm checkdb > /dev/null 2>&1 || echo "Reconfiguring database." && cryosparcm fixdbport
   cryosparcm restart
   cryosparcm checkdb
-  cryosparcm cli "reset_password('${SINGULARITYENV_USER}@fas.rc', '${cryosparc_user_password}')"
+
+  if cryosparcm listusers | grep -w "${email}"
+  then
+    cryosparcm resetpassword --email "${email}" --password "${cryosparc_user_password}"
+  else
+    cryosparcm createuser \
+      --email "${email}" \
+      --password "${cryosparc_user_password}" \
+      --username "${SINGULARITYENV_USER}" \
+      --firstname "${SINGULARITYENV_USER}" \
+      --lastname "${SINGULARITYENV_USER}"  
+    cryosparcm updateuser \
+      --email "${email}" \
+      --username "${SINGULARITYENV_USER}" \
+      --firstname "${SINGULARITYENV_USER}" \
+      --lastname "${SINGULARITYENV_USER}" \
+      --admin true \
+      --password "${cryosparc_user_password}"
+  fi
 fi
+
 
 # "cryosparw connect --update" doesn't work if the hostname has changed
 cryosparcm cli 'remove_scheduler_lane("default")'

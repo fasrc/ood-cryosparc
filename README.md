@@ -26,7 +26,8 @@ curl -o cryosparc-worker_v${version}.tar.gz -L https://get.cryosparc.com/downloa
 ## Site-specific modifications
 
 * [form.yml.erb](form.yml.erb) - replace `odyssey3` with a valid cluster OOD cluster configuration name
-* [template/script.sh.erb](template/script.sh.erb) - replace `${HOME}/cryosparc.sif` with the path to the cryosparc.sif built in Install step 2
+* [view.yml.erb](view.yml.erb) - replace `login.rc.fas.harvard.edu` with the hostname of your cluster's login node
+* [template/script.sh.erb](template/script.sh.erb) - replace `export singularity_image=<path-to-sif>` with the path to the cryosparc.sif built in Install step 2
 * [template/before.sh.erb](template/before.sh.erb) - (if necessary) replace `find_port localhost 7000 11000` with valid port range in your environment
 
 
